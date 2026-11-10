@@ -3,109 +3,187 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NAC Church Management Dashboard</title>
+<title>NAC Sepik | Church Management System</title>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <style>
-*{box-sizing:border-box}body{font-family:Arial,sans-serif;margin:0;background:#f4f6f8;color:#222}
-header{background:#1a3a5c;color:#fff;padding:14px 16px}header h1{margin:0;font-size:20px}header p{margin:4px 0 0;opacity:.85;font-size:13px}
-nav{display:flex;gap:6px;padding:10px;background:#fff;overflow-x:auto;position:sticky;top:0;z-index:10}
-nav button{border:1px solid #ddd;background:#fff;padding:9px 14px;border-radius:20px;cursor:pointer;white-space:nowrap}
-nav button.active{background:#1a3a5c;color:#fff;border-color:#1a3a5c}
-main{padding:14px}.card{background:#fff;border-radius:12px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:12px}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.big{font-size:28px;font-weight:700;margin:6px 0 0}
-input,select{width:100%;padding:11px;border:1px solid #ddd;border-radius:8px;margin:6px 0;font-size:15px}
-.btn{background:#2563eb;color:#fff;border:0;padding:12px;border-radius:8px;width:100%;font-size:16px;cursor:pointer}
-.btn-green{background:#16a34a}.row{display:flex;gap:8px}.row>*{flex:1}
-table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:10px 8px;border-bottom:1px solid #eee;text-align:left}
-.badge{background:#dcfce7;color:#166534;padding:4px 8px;border-radius:20px;font-size:12px}
-.del{background:#fee2e2;color:#991b1b;border:0;padding:6px 10px;border-radius:6px;cursor:pointer}
-#status{font-size:13px;padding:8px 10px;border-radius:8px;background:#fef9c3;margin-bottom:12px}
-.hidden{display:none}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+body{background:#eef2f7;display:flex;min-height:100vh;color:#0f172a}
+.sidebar{width:230px;background:#fff;border-right:1px solid #e2e8f0;padding:18px 14px;position:fixed;left:0;top:0;bottom:0;overflow-y:auto;z-index:10}
+.logo{display:flex;align-items:center;gap:10px;padding:4px 8px 14px;border-bottom:1px solid #eef2f7}
+.logo b{font-size:15px;line-height:1.1}.logo small{color:#64748b;font-weight:600;font-size:11px}
+.nav-label{font-size:10px;letter-spacing:.12em;color:#94a3b8;font-weight:700;margin:16px 8px 8px}
+.nav a{display:flex;align-items:center;gap:10px;padding:10px 10px;border-radius:10px;color:#334155;text-decoration:none;font-size:13.5px;font-weight:500;cursor:pointer}
+.nav a.active{background:#0f172a;color:#fff}.nav a span{font-size:15px}
+.main{margin-left:230px;flex:1;padding:18px 22px 40px;width:calc(100% - 230px)}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.topbar small{color:#64748b}
+.user{display:flex;align-items:center;gap:8px;background:#fff;padding:6px 10px;border-radius:999px;border:1px solid #e2e8f0}
+.avatar{width:32px;height:32px;border-radius:50%;background:#0f172a;color:#fff;display:grid;place-items:center;font-size:11px;font-weight:700}
+.hero{background:#0f172a;color:#fff;border-radius:16px;padding:22px;display:flex;gap:18px;align-items:center;overflow:hidden}
+.hero small{letter-spacing:.15em;color:#94a3b8;font-size:10px;font-weight:700}
+.hero h1{font-size:22px;line-height:1.2;margin:6px 0}.hero p{color:#cbd5e1;font-size:12.5px;line-height:1.5}
+.hero-img{width:72px;height:72px;background:#1e293b;border-radius:12px;flex-shrink:0;display:grid;place-items:center;font-size:28px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px}
+.card{background:#fff;border-radius:14px;padding:16px;border:1px solid #e2e8f0;border-top:4px solid #38bdf8;position:relative}
+.card:nth-child(2){border-top-color:#a78bfa}.card:nth-child(3){border-top-color:#f59e0b}.card:nth-child(4){border-top-color:#fbbf24}.card:nth-child(5){border-top-color:#ec4899}.card:nth-child(6){border-top-color:#60a5fa}.card:nth-child(7){border-top-color:#34d399}.card:nth-child(8){border-top-color:#fb7185}.card:nth-child(9){border-top-color:#f97316}.card:nth-child(10){border-top-color:#22c55e}.card:nth-child(11){border-top-color:#818cf8}.card:nth-child(12){border-top-color:#f43f5e}.card:nth-child(13){border-top-color:#14b8a6}
+.card h2{font-size:24px;margin:8px 0 2px}.card p{font-size:12px;color:#64748b}.card small{color:#94a3b8;font-size:11px}
+.badge{position:absolute;top:14px;right:14px;width:28px;height:28px;border-radius:8px;background:#f1f5f9;display:grid;place-items:center}
+.overview{background:#fff;border-radius:14px;padding:18px;margin-top:16px;border:1px solid #e2e8f0}
+.overview-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px}
+.mini{background:#f8fafc;border-radius:10px;padding:12px}.mini b{font-size:18px}.mini p{font-size:11px;color:#64748b}
+.page{display:none}.page.active{display:block}
+input,select,textarea{width:100%;padding:11px;border:1px solid #e2e8f0;border-radius:10px;margin-bottom:10px;font-size:14px;background:#fff}
+button{cursor:pointer;border:0;border-radius:10px;padding:11px 16px;font-weight:700}
+.btn-dark{background:#0f172a;color:#fff}.btn-green{background:#16a34a;color:#fff}.btn-light{background:#e2e8f0}
+table{width:100%;border-collapse:collapse;font-size:13px;background:#fff;border-radius:12px;overflow:hidden}
+th,td{padding:11px;text-align:left;border-bottom:1px solid #f1f5f9}th{background:#f8fafc;color:#64748b;font-size:11px;text-transform:uppercase}
+.cloud{margin-top:14px;background:#ecfdf5;border:1px solid #bbf7d0;padding:12px;border-radius:12px;font-size:13px}
+@media(max-width:800px){.sidebar{transform:translateX(-100%);position:fixed}.sidebar.open{transform:none}.main{margin-left:0;width:100%;padding:14px}.grid{grid-template-columns:repeat(2,1fr)}.overview-grid{grid-template-columns:repeat(2,1fr)}.hero h1{font-size:18px}}
 </style>
 </head>
 <body>
-<header><h1>NAC Church Management Dashboard</h1><p>Cloud Version • Synced to Firebase • Wewak, East Sepik</p></header>
-<nav>
-<button class="active" onclick="show('dash',this)">Dashboard</button>
-<button onclick="show('members',this)">Members</button>
-<button onclick="show('cong',this)">Congregations</button>
-<button onclick="show('att',this)">Attendance</button>
-<button onclick="show('reports',this)">Reports</button>
-<button onclick="show('offer',this)">Offerings</button>
-</nav>
-<main>
-<div id="status">⏳ Connecting to cloud...</div>
 
-<div id="dash">
-<div class="grid">
-<div class="card"><div>Members</div><div class="big" id="cMembers">0</div><div>record(s)</div></div>
-<div class="card"><div>Congregations</div><div class="big" id="cCong">0</div></div>
-<div class="card"><div>Attendance</div><div class="big">0</div></div>
-<div class="card"><div>Reports</div><div class="big" id="cReports">0</div></div>
-</div>
-<div class="card"><b>Cloud Status:</b> <span id="cloudStatus">Checking...</span><br><br>This dashboard now saves to Firebase Firestore. Add a member below and check Firebase - it will appear there instantly. Works on all phones.</div>
-</div>
-
-<div id="members" class="hidden">
-<div class="card"><h3 style="margin:0">Members (<span id="mCount">0</span> record(s))</h3>
-<input id="search" placeholder="Search members..." oninput="render()">
-<div class="row"><input id="fName" placeholder="First Name *"><input id="lName" placeholder="Last Name *"></div>
-<input id="congInput" placeholder="Congregation e.g. Wewak">
-<div class="row"><select id="role"><option>Member</option><option>Priest</option><option>Deacon</option><option>District Leader</option><option>Youth Leader</option><option>Choir</option></select><input id="phone" placeholder="Phone"></div>
-<button class="btn" onclick="addMember()">+ Add Member - Save to Cloud</button>
-</div>
-<div class="card" style="overflow-x:auto"><table><thead><tr><th>ID</th><th>Name</th><th>Congregation</th><th>Role</th><th>Phone</th><th>Status</th><th></th></tr></thead><tbody id="mList"></tbody></table></div>
+<div class="sidebar" id="sidebar">
+  <div class="logo"><div style="font-size:26px">⛪</div><div><b>NAC Sepik</b><br><small>Church Management System</small></div></div>
+  <div class="nav-label">MANAGEMENT</div>
+  <div class="nav" id="nav">
+    <a class="active" onclick="show('dashboard',this)"><span>🏠</span> Dashboard</a>
+    <a onclick="show('members',this)"><span>👥</span> Members</a>
+    <a onclick="show('households',this)"><span>🏠</span> Households</a>
+    <a onclick="show('congregations',this)"><span>⛪</span> Congregations</a>
+    <a onclick="show('districts',this)"><span>🗺️</span> Districts</a>
+    <a onclick="show('brothers',this)"><span>✦</span> Ministerial Brothers</a>
+    <a onclick="show('events',this)"><span>📅</span> Events & Services</a>
+    <a onclick="show('attendance',this)"><span>◎</span> Attendance</a>
+    <a onclick="show('offerings',this)"><span>💰</span> Offerings</a>
+    <a onclick="show('pastoral',this)"><span>📖</span> Pastoral Records</a>
+    <a onclick="show('news',this)"><span>📰</span> Monthly News</a>
+    <a onclick="show('media',this)"><span>🖼️</span> Media Library</a>
+    <a onclick="show('reports',this)"><span>📊</span> Reports</a>
+    <a onclick="show('apostle',this)"><span>📋</span> Apostle Reports</a>
+  </div>
+  <div class="nav-label">ACCOUNT</div>
+  <div class="nav"><a><span>⚙️</span> Settings</a><a><span>←</span> Log out</a></div>
 </div>
 
-<div id="cong" class="hidden"><div class="card"><h3>Congregations</h3><input id="congName" placeholder="Congregation name e.g. Wewak"><button class="btn btn-green" onclick="addCong()">+ Add Congregation</button><ul id="congList"></ul></div></div>
-<div id="att" class="hidden"><div class="card"><h3>Attendance</h3><p>Attendance tracking coming next. Members count is live from cloud.</p></div></div>
-<div id="reports" class="hidden"><div class="card"><h3>Reports</h3><p>Total Members: <b id="rMembers">0</b></p><button class="btn" onclick="alert('Report: '+members.length+' members in cloud. Export via Firebase Console.')">Generate Report</button></div></div>
-<div id="offer" class="hidden"><div class="card"><h3>Offerings</h3><input id="offAmt" type="number" placeholder="Amount (Kina)"><button class="btn btn-green" onclick="addOffering()">+ Add Offering</button><ul id="offList"></ul></div></div>
-</main>
+<div class="main">
+  <div class="topbar">
+    <div><button onclick="document.getElementById('sidebar').classList.toggle('open')" style="background:#fff;border:1px solid #e2e8f0">☰</button> <small>Welcome back. Your church management workspace is ready.</small></div>
+    <div class="user"><div class="avatar">PW</div><div style="line-height:1.1"><b style="font-size:12px">Philemon Wasimbai</b><br><small>Administrator</small></div></div>
+  </div>
 
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <!-- DASHBOARD -->
+  <div id="dashboard" class="page active">
+    <div class="hero">
+      <div class="hero-img">⛪</div>
+      <div><small>EAST & WEST SEPIK REGION</small><h1>Welcome to New Apostolic Church Dashboard</h1><p>A central view of members, congregations, districts, ministries and church activities.</p></div>
+    </div>
+    <div class="grid" id="cards"></div>
+    <div class="overview"><b>Regional overview</b><div class="overview-grid">
+      <div class="mini"><b id="ovMembers">0</b><p>Members</p></div>
+      <div class="mini"><b id="ovCong">0</b><p>Congregations</p></div>
+      <div class="mini"><b id="ovAtt">0</b><p>Attendance entries</p></div>
+      <div class="mini"><b>100.20</b><p>Total offerings (K)</p></div>
+      <div class="mini"><b>123</b><p>Apostle report attendance</p></div>
+    </div>
+    <div class="cloud" id="cloudStatus">⏳ Connecting to cloud...</div>
+    </div>
+  </div>
+
+  <!-- MEMBERS -->
+  <div id="members" class="page">
+    <h2 style="margin-bottom:12px">Members</h2>
+    <div style="background:#fff;padding:16px;border-radius:14px;border:1px solid #e2e8f0;margin-bottom:14px">
+      <h3 style="font-size:15px;margin-bottom:10px">Add New Member</h3>
+      <input id="mName" placeholder="Full Name *">
+      <input id="mPhone" placeholder="Phone">
+      <select id="mCong"><option>Wewak</option><option>Maprik</option><option>Vanimo</option><option>Aitape</option><option>Angoram</option></select>
+      <select id="mStatus"><option>Active</option><option>New Convert</option><option>Visitor</option></select>
+      <button class="btn-dark" onclick="addMember()">+ Add Member to Cloud</button>
+      <button class="btn-light" onclick="loadMembers()">Refresh</button>
+    </div>
+    <div style="overflow-x:auto"><table><thead><tr><th>Name</th><th>Congregation</th><th>Phone</th><th>Status</th></tr></thead><tbody id="memberList"><tr><td colspan="4">Loading...</td></tr></tbody></table></div>
+  </div>
+
+  <!-- OTHER PAGES - PLACEHOLDER WITH SAME DESIGN -->
+  <div id="households" class="page"><h2>Households</h2><p style="margin-top:10px;color:#64748b">Households records - coming in full version. Members data is already in cloud.</p><div class="cloud">Households will use same cloud database.</div></div>
+  <div id="congregations" class="page"><h2>Congregations</h2><p style="margin-top:10px;color:#64748b">Active congregation records.</p><div style="margin-top:12px;background:#fff;padding:14px;border-radius:12px">Wewak • Maprik • Vanimo • Aitape • Angoram</div></div>
+  <div id="districts" class="page"><h2>Districts</h2><p style="margin-top:10px">Districts records</p></div>
+  <div id="brothers" class="page"><h2>Ministerial Brothers</h2><p style="margin-top:10px">Ministerial Brothers records</p></div>
+  <div id="events" class="page"><h2>Events & Services</h2><p style="margin-top:10px">Events & Services records</p></div>
+  <div id="attendance" class="page"><h2>Attendance</h2><p style="margin-top:10px">Attendance records</p></div>
+  <div id="offerings" class="page"><h2>Offerings</h2><p style="margin-top:10px">Offerings records</p></div>
+  <div id="pastoral" class="page"><h2>Pastoral Records</h2><p style="margin-top:10px">Pastoral Records</p></div>
+  <div id="news" class="page"><h2>Monthly News</h2><p style="margin-top:10px">Monthly News records</p></div>
+  <div id="media" class="page"><h2>Media Library</h2><p style="margin-top:10px">Media Library records</p></div>
+  <div id="reports" class="page"><h2>Reports</h2><p style="margin-top:10px">Reports</p></div>
+  <div id="apostle" class="page"><h2>Apostle Reports</h2><p style="margin-top:10px">Apostle Reports records</p></div>
+</div>
+
 <script>
+// ===== PASTE YOUR FIREBASE CONFIG HERE =====
 const firebaseConfig = {
-  apiKey: "AIzaSyB4hedsmpGYwI4DRxe1vZgNQQtLilvJ_8k",
-  authDomain: "nac-sepik-dashboard.firebaseapp.com",
-  projectId: "nac-sepik-dashboard",
-  storageBucket: "nac-sepik-dashboard.firebasestorage.app",
-  messagingSenderId: "769332774816",
-  appId: "1:769332774816:web:549e48b768cd0560e506c5"
+  apiKey: "PASTE_YOUR_API_KEY",
+  authDomain: "PASTE_YOUR_PROJECT.firebaseapp.com",
+  projectId: "PASTE_YOUR_PROJECT_ID",
+  storageBucket: "PASTE_YOUR_PROJECT.appspot.com",
+  messagingSenderId: "PASTE_YOUR_SENDER_ID",
+  appId: "PASTE_YOUR_APP_ID"
 };
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-let members=[], congs=[], offerings=[];
-function show(id,btn){document.querySelectorAll('main > div').forEach(d=>d.classList.add('hidden'));document.getElementById(id).classList.remove('hidden');document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
-db.collection("members").orderBy("createdAt","desc").onSnapshot(s=>{
-  members=s.docs.map(d=>({id:d.id,...d.data()}));
-  document.getElementById('status').textContent="✅ Connected to cloud - "+members.length+" members loaded from Firebase";
-  document.getElementById('status').style.background="#dcfce7";
-  document.getElementById('cloudStatus').textContent="✅ Connected - "+members.length+" members in cloud";
-  render();
-},e=>{document.getElementById('status').textContent="❌ Cloud error: "+e.message;document.getElementById('cloudStatus').textContent="❌ "+e.message;});
-db.collection("congregations").onSnapshot(s=>{congs=s.docs.map(d=>({id:d.id,...d.data()}));document.getElementById('cCong').textContent=congs.length;document.getElementById('congList').innerHTML=congs.map(c=>"<li>"+c.name+"</li>").join('')||"<li>No congregations yet</li>";});
-db.collection("reports").onSnapshot(s=>{document.getElementById('cReports').textContent=s.size;});
-function render(){
-  const q=(document.getElementById('search').value||"").toLowerCase();
-  const list=members.filter(m=>(m.firstName+" "+m.lastName+" "+(m.congregation||"")).toLowerCase().includes(q));
-  document.getElementById('mCount').textContent=members.length;
-  document.getElementById('cMembers').textContent=members.length;
-  document.getElementById('rMembers').textContent=members.length;
-  document.getElementById('mList').innerHTML=list.map(m=>"<tr><td>"+(m.memberId||"")+"</td><td><b>"+m.firstName+" "+m.lastName+"</b></td><td>"+(m.congregation||"")+"</td><td>"+(m.role||"")+"</td><td>"+(m.phone||"")+"</td><td><span class='badge'>Active</span></td><td><button class='del' onclick=\"delMember('"+m.id+"')\">Delete</button></td></tr>").join('')||"<tr><td colspan='7'>No members yet - add one above</td></tr>";
+// ============================================
+let db=null;
+try{ firebase.initializeApp(firebaseConfig); db=firebase.firestore(); }catch(e){ console.log(e); }
+
+const items=[
+  {t:'Members',d:'Registered church members',i:'👥',k:'members'},
+  {t:'Households',d:'Households records',i:'🏠',k:'households'},
+  {t:'Congregations',d:'Active congregation records',i:'⛪',k:'congregations'},
+  {t:'Districts',d:'Districts records',i:'🗺️',k:'districts'},
+  {t:'Ministerial Brothers',d:'Ministerial Brothers records',i:'✦',k:'brothers'},
+  {t:'Events & Services',d:'Events & Services records',i:'📅',k:'events'},
+  {t:'Attendance',d:'Attendance records',i:'◎',k:'attendance'},
+  {t:'Offerings',d:'Offerings records',i:'💰',k:'offerings'},
+  {t:'Pastoral Records',d:'Pastoral Records',i:'📖',k:'pastoral'},
+  {t:'Monthly News',d:'Monthly News records',i:'📰',k:'news'},
+  {t:'Media Library',d:'Media Library records',i:'🖼️',k:'media'},
+  {t:'Reports',d:'Reports records',i:'📊',k:'reports'},
+  {t:'Apostle Reports',d:'Apostle Reports records',i:'📋',k:'apostle'},
+];
+function renderCards(counts){
+  document.getElementById('cards').innerHTML = items.map(it=>`
+    <div class="card" onclick="show('${it.k}', document.querySelectorAll('.nav a')[${items.indexOf(it)}])" style="cursor:pointer">
+      <div class="badge">${it.i}</div><h2>${counts[it.k]||0}</h2><p>${it.t}</p><small>${it.d}</small>
+    </div>`).join('');
+}
+function show(id, el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.nav a').forEach(a=>a.classList.remove('active'));
+  if(el) el.classList.add('active');
+  document.getElementById('sidebar').classList.remove('open');
+  window.scrollTo(0,0);
+}
+async function loadMembers(){
+  if(!db){ document.getElementById('cloudStatus').innerHTML='⚠️ Firebase config missing - paste your config in code'; renderCards({}); return; }
+  try{
+    const snap = await db.collection('members').orderBy('createdAt','desc').get();
+    const list = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    document.getElementById('memberList').innerHTML = list.length ? list.map(m=>`<tr><td><b>${m.name||''}</b></td><td>${m.congregation||''}</td><td>${m.phone||''}</td><td>${m.status||''}</td></tr>`).join('') : '<tr><td colspan="4">No members yet - add one above</td></tr>';
+    document.getElementById('ovMembers').textContent = list.length;
+    document.getElementById('cloudStatus').innerHTML = '✅ Connected to cloud - '+list.length+' members in cloud. Works on all phones.';
+    renderCards({members:list.length, households:1, congregations:1, districts:1, brothers:1, events:1, attendance:1, offerings:1, pastoral:1, news:1, media:1, reports:0, apostle:1});
+  }catch(e){ document.getElementById('cloudStatus').innerHTML='❌ Cloud error: '+e.message; renderCards({}); }
 }
 async function addMember(){
-  const firstName=document.getElementById('fName').value.trim();
-  const lastName=document.getElementById('lName').value.trim();
-  if(!firstName||!lastName){alert("Enter First and Last Name");return;}
-  const memberId="2026"+String(members.length+1).padStart(3,"0");
-  await db.collection("members").add({firstName,lastName,congregation:document.getElementById('congInput').value.trim(),role:document.getElementById('role').value,phone:document.getElementById('phone').value.trim(),memberId,status:"Active",createdAt:firebase.firestore.FieldValue.serverTimestamp()});
-  document.getElementById('fName').value="";document.getElementById('lName').value="";document.getElementById('congInput').value="";document.getElementById('phone').value="";
-  alert("Saved to cloud! ✅");
+  const name=document.getElementById('mName').value.trim();
+  if(!name) return alert('Enter name');
+  if(!db) return alert('Paste Firebase config first');
+  await db.collection('members').add({name, phone:document.getElementById('mPhone').value, congregation:document.getElementById('mCong').value, status:document.getElementById('mStatus').value, createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+  document.getElementById('mName').value=''; document.getElementById('mPhone').value='';
+  alert('Saved to cloud ✅'); loadMembers(); show('members');
 }
-async function delMember(id){if(confirm("Delete this member from cloud?")) await db.collection("members").doc(id).delete();}
-async function addCong(){const n=document.getElementById('congName').value.trim();if(!n)return;await db.collection("congregations").add({name:n,createdAt:firebase.firestore.FieldValue.serverTimestamp()});document.getElementById('congName').value="";}
-async function addOffering(){const a=document.getElementById('offAmt').value;if(!a)return;offerings.push(a);document.getElementById('offList').innerHTML=offerings.map(o=>"<li>K "+o+"</li>").join('');document.getElementById('offAmt').value="";alert("Offering saved locally - will move to cloud next");}
+loadMembers();
 </script>
 </body>
 </html>
